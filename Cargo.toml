@@ -1,0 +1,27 @@
+[package]
+name = "pinsteel"
+description = "Solana smart contract framework. Steel and Pinocchio combined"
+version = "2025.41.0"
+edition = "2021"
+license = "Apache-2.0"
+authors = ["Ace Ape"]
+readme = "./README.md"
+homepage = "https://head2head.gg"
+documentation = "https://docs.rs/pinsteel/latest/pinsteel/"
+repository = "https://github.com/AceApeDev/pinsteel"
+keywords = ["solana", "crypto"]
+# categories = ["command-line-utilities"]
+
+
+[features]
+std = []
+
+[dependencies]
+num_enum = { version = "0.7.2", default-features = false}
+pinocchio = { version = "^0.9.0", default-features = false }
+pinocchio-log = { version = "^0.5.0", default-features = false, features = ["macro"] }
+pinocchio-pubkey = { version = "^0.3.0", default-features = false }
+pinocchio-system = { version = "^0.3.0", default-features = false }
+
+[target.'cfg(not(target_os = "solana"))'.dependencies]
+sha3 = { version = "0.10.8", default-features = false, features = ["asm"] }

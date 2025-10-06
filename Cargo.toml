@@ -13,6 +13,9 @@ keywords = ["solana", "crypto"]
 # categories = ["command-line-utilities"]
 
 
+[lib]
+crate-type = ["rlib"]
+
 [features]
 std = []
 

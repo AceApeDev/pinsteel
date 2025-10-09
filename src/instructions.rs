@@ -12,7 +12,7 @@ use pinocchio_system::instructions::{Allocate, Assign, CreateAccount, Transfer};
 
 use crate::{EMIT_EVENT_DISCRIMINATOR, MAX_CPI_INSTRUCTION_DATA_LEN};
 
-/// Create a new program account with a discriminator.
+/// Create a new program account.
 ///
 /// ### Accounts:
 ///   0. `[WRITE, SIGNER]` Funding account
@@ -37,54 +37,96 @@ impl CreateProgramAccount<'_> {
         self.invoke_signed(&[])
     }
 
-    /// Create a new PDA with a discriminator.
+    /// Create a new PDA.
     #[inline(always)]
     pub fn invoke_signed(&self, signers: &[Signer]) -> ProgramResult {
-        if self.pda.lamports() > 0 {
-            // Anyone can transfer lamports to accounts before they're initialized
-            // in that case, creating the account won't work.
-            // in order to get around it, you need to fund the account with enough lamports to be rent exempt,
-            // then allocate the required space and set the owner to the current program
-
-            let required_lamports = Rent::get()?
-                .minimum_balance(self.space)
-                .max(1)
-                .saturating_sub(self.pda.lamports());
-
-            // 1) Transfer sufficient lamports for rent exemption
-            if required_lamports > 0 {
-                Transfer {
-                    from: self.payer,
-                    to: self.pda,
-                    lamports: required_lamports,
-                }
-                .invoke()?;
-            }
-
-            // 2) Allocate space for the account
-            Allocate {
-                account: self.pda,
-                space: self.space as u64,
-            }
-            .invoke_signed(signers)?;
-
-            // 3) Assign our program as the owner
-            Assign {
-                account: self.pda,
-                owner: self.owner,
-            }
-            .invoke_signed(signers)?;
-        } else {
+        if self.pda.lamports() == 0 {
             // If balance is zero, create account
-            CreateAccount {
+            return CreateAccount {
                 from: self.payer,
                 to: self.pda,
                 lamports: Rent::get()?.minimum_balance(self.space).max(1),
                 space: self.space as u64,
                 owner: self.owner,
             }
-            .invoke_signed(signers)?;
+            .invoke_signed(signers);
         }
+        
+        // Anyone can transfer lamports to accounts before they're initialized
+        // in that case, creating the account won't work.
+        // in order to get around it, you need to fund the account with enough lamports to be rent exempt,
+        // then allocate the required space and set the owner to the current program
+
+        let required_lamports = Rent::get()?
+            .minimum_balance(self.space)
+            .max(1)
+            .saturating_sub(self.pda.lamports());
+
+        // 1) Transfer sufficient lamports for rent exemption
+        if required_lamports > 0 {
+            Transfer {
+                from: self.payer,
+                to: self.pda,
+                lamports: required_lamports,
+            }
+            .invoke()?;
+        }
+
+        // 2) Allocate space for the account
+        Allocate {
+            account: self.pda,
+            space: self.space as u64,
+        }
+        .invoke_signed(signers)?;
+
+        // 3) Assign our program as the owner
+        Assign {
+            account: self.pda,
+            owner: self.owner,
+        }
+        .invoke_signed(signers)?;
+
+
+        Ok(())
+    }
+}
+
+/// Resize existing program account.
+///
+/// ### Accounts:
+///   0. `[WRITE, SIGNER]` Funding account
+///   1. `[WRITE, SIGNER]` PDA account
+pub struct ResizeProgramAccount<'a> {
+    /// Funding account.
+    pub payer: &'a AccountInfo,
+
+    /// PDA account.
+    pub pda: &'a AccountInfo,
+
+    /// Number of bytes of memory to allocate.
+    pub space: usize,
+
+    /// Program that owns the account.
+    pub program: &'a Pubkey,
+}
+
+impl ResizeProgramAccount<'_> {
+    #[inline(always)]
+    pub fn invoke(&self) -> ProgramResult {
+        if self.pda.owner() != self.program {
+            return Err(ProgramError::IllegalOwner);
+        }
+
+        let required_lamports = Rent::get()?
+            .minimum_balance(self.space)
+            .max(1)
+            .saturating_sub(self.pda.lamports());
+            
+        if required_lamports > 0 {
+            Transfer { from: self.payer, to: self.pda, lamports: required_lamports}.invoke()?;
+        }
+
+        self.pda.resize(self.space)?;
 
         Ok(())
     }
@@ -99,6 +141,7 @@ impl CreateProgramAccount<'_> {
 /// ### Accounts:
 ///   0. `[WRITE]` The account to close.
 ///   1. `[WRITE]` The destination account.
+
 pub struct CloseProgramAccount<'a> {
     pub account: &'a AccountInfo,
     pub destination: &'a AccountInfo,
@@ -164,6 +207,8 @@ impl EmitEvent<'_> {
         };
         // Save in self-CPI instruction data
         invoke_signed(&instruction, &[self.event_authority, self.program], signers)?;
+        // Save in log return data
+        set_return_data(self.data);
         Ok(())
     }
 }

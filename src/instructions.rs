@@ -99,7 +99,6 @@ impl CreateProgramAccount<'_> {
 /// ### Accounts:
 ///   0. `[WRITE]` The account to close.
 ///   1. `[WRITE]` The destination account.
-
 pub struct CloseProgramAccount<'a> {
     pub account: &'a AccountInfo,
     pub destination: &'a AccountInfo,
@@ -165,8 +164,6 @@ impl EmitEvent<'_> {
         };
         // Save in self-CPI instruction data
         invoke_signed(&instruction, &[self.event_authority, self.program], signers)?;
-        // Save in log return data
-        set_return_data(self.data);
         Ok(())
     }
 }

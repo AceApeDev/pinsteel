@@ -10,8 +10,6 @@ homepage = "https://head2head.gg"
 documentation = "https://docs.rs/pinsteel/latest/pinsteel/"
 repository = "https://github.com/AceApeDev/pinsteel"
 keywords = ["solana", "crypto"]
-# categories = ["command-line-utilities"]
-
 
 [lib]
 crate-type = ["rlib"]

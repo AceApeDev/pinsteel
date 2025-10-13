@@ -225,6 +225,7 @@ impl<'a> Validation<'a> {
     }
 }
 
+#[inline(never)]
 fn derive_pda(
     seeds: &[&[u8]],
     program_id: &Pubkey,

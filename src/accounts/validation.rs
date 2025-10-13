@@ -104,6 +104,7 @@ impl<'a> Validation<'a> {
     }
 
     #[must_use]
+    #[inline(never)]
     pub fn run(self, ai: &AccountInfo) -> ProgramResult {
         // --------------- is_signer -------------------------------
         if self.is_signer && !ai.is_signer() {
@@ -131,8 +132,9 @@ impl<'a> Validation<'a> {
             if !ai.is_owned_by(program_id) {
                 return Err(ProgramError::InvalidAccountOwner);
             }
-
+            
             // We only check discriminator, because we own account.
+            if ai.data_len() == 0 { return Err(ProgramError::InvalidAccountData); }
             if ai.try_borrow_data()?[0].ne(&discriminator) {
                 return Err(ProgramError::InvalidAccountData);
             }

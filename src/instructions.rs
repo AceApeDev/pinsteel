@@ -207,8 +207,6 @@ impl EmitEvent<'_> {
         };
         // Save in self-CPI instruction data
         invoke_signed(&instruction, &[self.event_authority, self.program], signers)?;
-        // Save in log return data
-        set_return_data(self.data);
         Ok(())
     }
 }

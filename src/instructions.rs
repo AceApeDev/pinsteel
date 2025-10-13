@@ -1,7 +1,7 @@
 use pinocchio::{
     account_info::AccountInfo,
     instruction::{AccountMeta, Instruction, Signer},
-    program::{invoke_signed, set_return_data},
+    program::invoke_signed,
     program_error::ProgramError,
     pubkey::Pubkey,
     sysvars::{rent::Rent, Sysvar},
@@ -51,7 +51,7 @@ impl CreateProgramAccount<'_> {
             }
             .invoke_signed(signers);
         }
-        
+
         // Anyone can transfer lamports to accounts before they're initialized
         // in that case, creating the account won't work.
         // in order to get around it, you need to fund the account with enough lamports to be rent exempt,
@@ -85,7 +85,6 @@ impl CreateProgramAccount<'_> {
             owner: self.owner,
         }
         .invoke_signed(signers)?;
-
 
         Ok(())
     }
@@ -121,9 +120,14 @@ impl ResizeProgramAccount<'_> {
             .minimum_balance(self.space)
             .max(1)
             .saturating_sub(self.pda.lamports());
-            
+
         if required_lamports > 0 {
-            Transfer { from: self.payer, to: self.pda, lamports: required_lamports}.invoke()?;
+            Transfer {
+                from: self.payer,
+                to: self.pda,
+                lamports: required_lamports,
+            }
+            .invoke()?;
         }
 
         self.pda.resize(self.space)?;

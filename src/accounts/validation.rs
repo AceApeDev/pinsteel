@@ -132,9 +132,11 @@ impl<'a> Validation<'a> {
             if !ai.is_owned_by(program_id) {
                 return Err(ProgramError::InvalidAccountOwner);
             }
-            
+
             // We only check discriminator, because we own account.
-            if ai.data_len() == 0 { return Err(ProgramError::InvalidAccountData); }
+            if ai.data_len() == 0 {
+                return Err(ProgramError::InvalidAccountData);
+            }
             if ai.try_borrow_data()?[0].ne(&discriminator) {
                 return Err(ProgramError::InvalidAccountData);
             }
@@ -225,7 +227,6 @@ impl<'a> Validation<'a> {
     }
 }
 
-#[inline(never)]
 fn derive_pda(
     seeds: &[&[u8]],
     program_id: &Pubkey,

@@ -165,7 +165,7 @@ dependencies = [
 
 [[package]]
 name = "pinsteel"
-version = "2025.41.0"
+version = "2025.42.0"
 dependencies = [
  "num_enum",
  "pinocchio",

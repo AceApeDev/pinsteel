@@ -45,10 +45,9 @@ macro_rules! impl_to_bytes_mut {
 #[macro_export]
 macro_rules! account {
     ($discriminator_name:ident, $struct_name:ident) => {
+        $crate::impl_to_bytes!($struct_name);
         impl $crate::Account for $struct_name {}
-
-        impl_to_bytes!($struct_name);
-
+        
         impl $crate::Discriminator for $struct_name {
             #[inline(always)]
             fn discriminator() -> u8 {

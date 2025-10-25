@@ -1,7 +1,7 @@
 [package]
 name = "pinsteel"
 description = "Solana smart contract framework. Steel and Pinocchio combined"
-version = "2025.42.0"
+version = "2025.43.0"
 edition = "2021"
 license = "Apache-2.0"
 authors = ["Ace Ape"]

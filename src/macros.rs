@@ -47,6 +47,8 @@ macro_rules! account {
     ($discriminator_name:ident, $struct_name:ident) => {
         impl $crate::Account for $struct_name {}
 
+        impl_to_bytes!($struct_name);
+
         impl $crate::Discriminator for $struct_name {
             #[inline(always)]
             fn discriminator() -> u8 {
